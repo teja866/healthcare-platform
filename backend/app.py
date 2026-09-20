@@ -33,7 +33,10 @@ from typing import Dict, Any, List, Optional
 
 import bcrypt
 import jwt
-import resend
+try:
+    import resend
+except ImportError:
+    resend = None
 
 try:
     from dotenv import load_dotenv
@@ -79,7 +82,7 @@ app = Flask(__name__)
 # Authentication Configuration
 # ----------------------------------------------------------------------
 
-JWT_SECRET = os.environ.get("JWT_SECRET", "healthcare-dev-jwt-secret-key-2025")
+JWT_SECRET = os.environ.get("JWT_SECRET") or os.environ.get("JWT_SECRET_KEY", "healthcare-dev-jwt-secret-key-2025")
 
 FRONTEND_URL = os.environ.get(
     "FRONTEND_URL",
@@ -89,7 +92,7 @@ FRONTEND_URL = os.environ.get(
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 EMAIL_FROM = os.environ.get("EMAIL_FROM")
 
-if RESEND_API_KEY:
+if RESEND_API_KEY and resend:
     resend.api_key = RESEND_API_KEY
 # Configure CORS
 # Allow Vercel frontend domains, local development, or configured origins via environment
