@@ -569,6 +569,33 @@ def profile():
     return jsonify(public_user(user)), 200
 
 
+@app.route('/profiles', methods=['GET'])
+def get_all_profiles():
+    """Retrieves all registered user profiles (Admin/Debug view)."""
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        return jsonify({'error': 'Database not configured'}), 500
+    
+    try:
+        import psycopg2
+        from psycopg2.extras import RealDictCursor
+        conn = psycopg2.connect(database_url)
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute("SELECT id, email, full_name, user_type, phone_number, city, state, created_at FROM users")
+                users = cur.fetchall()
+                
+                for u in users:
+                    if u.get('created_at'):
+                        u['created_at'] = str(u['created_at'])
+                        
+            return jsonify({'profiles': users, 'count': len(users)}), 200
+        finally:
+            conn.close()
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/saved-institutions', methods=['GET', 'POST'])
 def saved_institutions():
     """Retrieves or toggles saved/bookmarked institutions."""
