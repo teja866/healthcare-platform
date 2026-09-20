@@ -365,6 +365,7 @@ def root():
             '/screening/history',
             '/monitoring',
             '/profile',
+            '/profiles',
             '/saved-institutions'
         ]
     }), 200
