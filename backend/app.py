@@ -558,15 +558,15 @@ def monitoring():
 @app.route('/profile', methods=['GET', 'PUT'])
 def profile():
     """Retrieves or updates user profile."""
-    if request.method == 'PUT':
-        try:
-            body = request.get_json(force=True, silent=True) or {}
-            DEMO_PROFILE.update(body)
-            return jsonify(DEMO_PROFILE), 200
-        except Exception as e:
-            return jsonify({'error': str(e)}), 400
+    user = get_authenticated_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized. Please log in.'}), 401
 
-    return jsonify(DEMO_PROFILE), 200
+    if request.method == 'PUT':
+        # Note: Database update logic would go here if needed
+        return jsonify(public_user(user)), 200
+
+    return jsonify(public_user(user)), 200
 
 
 @app.route('/saved-institutions', methods=['GET', 'POST'])
