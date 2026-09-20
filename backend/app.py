@@ -615,6 +615,43 @@ def saved_institutions():
 
     return jsonify({'savedIds': DEMO_SAVED_IDS}), 200
 
+# --- SQS Queuing Endpoints ---
+
+@app.route('/tasks/enqueue', methods=['POST'])
+def enqueue_task():
+    """Pushes a task to the AWS SQS queue."""
+    sqs_queue_url = os.environ.get('SQS_QUEUE_URL')
+    if not sqs_queue_url:
+        return jsonify({'error': 'SQS_QUEUE_URL not configured'}), 500
+        
+    try:
+        body = request.get_json(force=True, silent=True) or {}
+        
+        # Example of offloading welcome email task
+        task = body.get('task', 'generic_task')
+        payload = body.get('payload', {})
+        
+        message_body = json.dumps({
+            'task': task,
+            **payload
+        })
+        
+        import boto3
+        sqs = boto3.client('sqs', region_name=os.environ.get('AWS_REGION', 'ap-south-1'))
+        
+        response = sqs.send_message(
+            QueueUrl=sqs_queue_url,
+            MessageBody=message_body
+        )
+        
+        return jsonify({
+            'message': 'Task queued successfully',
+            'messageId': response.get('MessageId')
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # ----------------------------------------------------------------------
 # 5. Authentication Endpoints
 # ----------------------------------------------------------------------

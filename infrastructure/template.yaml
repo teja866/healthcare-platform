@@ -267,6 +267,31 @@ Resources:
             ApiId: !Ref HealthcareHttpApi
 
   # =========================================================================
+  # 5. SQS QUEUE & BACKGROUND WORKER
+  # =========================================================================
+  HealthcareTaskQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: healthcare-task-queue
+      VisibilityTimeout: 30
+
+  TaskWorkerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/functions/worker/
+      Handler: app.lambda_handler
+      Description: Background worker to process tasks from SQS
+      Policies:
+        - SQSPollerPolicy:
+            QueueName: !GetAtt HealthcareTaskQueue.QueueName
+      Events:
+        MySQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt HealthcareTaskQueue.Arn
+            BatchSize: 10
+
+  # =========================================================================
   # 5. S3 FRONTEND STATIC WEBSITE HOSTING
   # =========================================================================
   FrontendBucket:
@@ -311,3 +336,6 @@ Outputs:
   FrontendWebsiteUrl:
     Description: S3 Static Website Hosting URL
     Value: !GetAtt FrontendBucket.WebsiteURL
+  TaskQueueUrl:
+    Description: SQS Queue URL for background tasks
+    Value: !Ref HealthcareTaskQueue
