@@ -366,7 +366,8 @@ def root():
             '/monitoring',
             '/profile',
             '/profiles',
-            '/saved-institutions'
+            '/saved-institutions',
+            '/tasks/enqueue'
         ]
     }), 200
 
